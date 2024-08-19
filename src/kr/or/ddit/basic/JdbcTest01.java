@@ -43,7 +43,7 @@ public class JdbcTest01 {
 			// 2. DB에 접속  ==> Connection객체 생성
 			conn = DriverManager.getConnection(
 					"jdbc:oracle:thin:@localhost:1521:xe", 
-					"JSJ91", "java");
+					"JU", "java");
 			
 			// 3. 질의
 			
