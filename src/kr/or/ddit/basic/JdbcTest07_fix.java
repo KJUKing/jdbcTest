@@ -30,60 +30,38 @@ public class JdbcTest07_fix {
     Scanner scan = new Scanner(System.in);
 
     public static void main(String[] args) {
+        JdbcTest07_fix test = new JdbcTest07_fix();
+        test.startMember();
+    }
 
+    public void startMember() {
+        while (true) {
+            int choice = displayMenu();
+            switch (choice) {
+                case 1:
+                    insertMember();
+                    break;
+                case 2:
+                    deleteMember();
+                    break;
+                case 3:
+                    updateMember();
+                    break;
+                case 4:
+                    displayAllMember(); break;
+                case 5:
+                    updateMemberV2(); break;
+                case 0:
+                    System.out.println("작업을 마칩니다");
+                    return;
+                default:
+                    System.out.println("잘못입력했습니다");
 
-        Scanner scan = new Scanner(System.in);
-
-        Connection conn = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        try {
-            conn = DBUtil.getConnection();
-
-
-            int num = scan.nextInt();
-            scan.nextLine(); // nextInt 후 개행 문자 처리
-
-
-            if (num == 4) {
-                System.out.println("전체 정보 조회 페이지입니다");
-
-                String sql = "select * from mymember";
-                pstmt = conn.prepareStatement(sql);
-                rs = pstmt.executeQuery();
-                System.out.println("\t=== 검색 결과 ===");
-                System.out.println("------------------------------------------------------");
-                while (rs.next()) {
-                    String memId = rs.getString("MEM_ID");
-                    String memPass = rs.getString("MEM_PASS");
-                    String memName = rs.getString("MEM_NAME");
-                    String memTel = rs.getString("MEM_TEL");
-                    String memAddr = rs.getString("MEM_ADDR");
-
-                    System.out.println(memId + ", " + memPass + ", " + memName + ", " + memTel + ", " + memAddr);
-
-                }
-                System.out.println("------------------------------------------------------");
-            }
-
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            if (rs != null) try {
-                rs.close();
-            } catch (SQLException e) {
-            }
-            if (pstmt != null) try {
-                pstmt.close();
-            } catch (SQLException e) {
-            }
-            if (conn != null) try {
-                conn.close();
-            } catch (SQLException e) {
             }
         }
+
     }
+
 
     private int displayMenu() {
 
@@ -224,18 +202,23 @@ public class JdbcTest07_fix {
             }
         } while (count > 0);
 
+        scan.nextLine();
         System.out.print("pw 입력");
         String pass = scan.nextLine();
+        System.out.println();
 
         System.out.print("name 입력");
         String name = scan.nextLine();
+        System.out.println();
 
         System.out.print("tel 입력");
         String tel = scan.nextLine();
+        System.out.println();
 
         scan.nextLine();
         System.out.print("address 입력");
         String addr = scan.nextLine();
+        System.out.println();
 
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -272,32 +255,125 @@ public class JdbcTest07_fix {
         }
     }
 
-    public void startMember() {
-        while (true) {
-            int choice = displayMenu();
-            switch (choice) {
-                case 1:
-                    insertMember();
-                    break;
-                case 2:
-                    deleteMember();
-                    break;
-                case 3:
-                    updateMember();
-                    break;
-                case 4:
-                    break;
-                case 5:
-                    break;
-                case 0:
-                    System.out.println("작업을 마칩니다");
-                    return;
-                default:
-                    System.out.println("잘못입력했습니다");
 
-            }
+    private void updateMemberV2() {
+
+        System.out.println("회원 수정 페이지입니다");
+
+        System.out.print("수정하려는 회원 ID를 입력하시오: ");
+        String memId = scan.nextLine();  // 여기에서 memId를 받아옵니다.
+
+        int count = getMemberCount(memId);
+
+        if (count == 0) {
+            System.out.println("없는 회원 ID입니다");
+            System.out.println("수정 작업을 마칩니다");
+            return;
         }
 
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+
+        int num;
+        String updateField = null; // 변경할 컬럼명이 저장될 변수
+        String titleMsg = null; // 변경할 값을 입력받을때 나타나는 메세지가 저장될 변수
+
+        do {
+            System.out.println();
+            System.out.println("수정할 항목을 선택하세요..");
+            System.out.println("1.비밀번호 2.회원이름 3.전화번호 4.회원주소");
+            System.out.println("------------------------------");
+            System.out.print("수정할 항목 선택 : ");
+            num = scan.nextInt();
+
+            switch (num) {
+                case 1:
+                    updateField = "mem_pass"; titleMsg = "비밀번호"; break;
+                case 2:
+                    updateField = "mem_name"; titleMsg = "회원이름"; break;
+                case 3:
+                    updateField = "mem_tel"; titleMsg = "전화번호"; break;
+                case 4:
+                    updateField = "mem_addr"; titleMsg = "회원주소"; break;
+                default:
+                    System.out.println("수정할 항목 선택이 잘못됐습니다 다시선택해주세요");
+
+            }
+        } while (num < 1 || num > 4);
+
+        scan.nextLine(); // 이전에 남은 개행문자 제거
+        System.out.println();
+        System.out.print("새로운 " + titleMsg + " 입력 : ");
+        String updateData = scan.nextLine();
+
+        try {
+            conn = DBUtil.getConnection();
+
+            String sql = "update mymember set " + updateField + " = ? where mem_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, updateData);
+            pstmt.setString(2, memId);  // 여기에서 memId를 사용합니다.
+
+            int cnt = pstmt.executeUpdate();
+            if (cnt > 0) {
+                System.out.println("수정 작업 완료");
+            } else {
+                System.out.println("수정 작업 실패");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (pstmt != null) try { pstmt.close(); } catch (SQLException e) {}
+            if (conn != null) try { conn.close(); } catch (SQLException e) {}
+        }
+    }
+
+
+
+    private void displayAllMember() {
+
+        System.out.println("전체 정보 조회 페이지입니다");
+
+        System.out.println("\t=== 검색 결과 ===");
+        System.out.println("------------------------------------------------------");
+
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            conn = DBUtil.getConnection();
+
+            String sql = "select * from mymember";
+            pstmt = conn.prepareStatement(sql);
+            rs = pstmt.executeQuery();
+            int cnt = 0;
+            while (rs.next()) {
+                String memId = rs.getString("MEM_ID");
+                String memPass = rs.getString("MEM_PASS");
+                String memName = rs.getString("MEM_NAME");
+                String memTel = rs.getString("MEM_TEL");
+                String memAddr = rs.getString("MEM_ADDR");
+                System.out.println(memId + ", " + memPass + ", " + memName + ", " + memTel + ", " + memAddr);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            if (pstmt != null) try {
+                pstmt.close();
+            } catch (SQLException e) {
+            }
+            ;
+            if (conn != null) try {
+                conn.close();
+            } catch (SQLException e) {
+            }
+            ;
+        }
+
+
+        System.out.println("------------------------------------------------------");
     }
 
     // 회원ID를 매개변수로 받아서 해당 회원ID의 개수를 반환하는 메서드
