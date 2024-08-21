@@ -1,6 +1,8 @@
 package kr.or.ddit.basic;
 
 import kr.or.ddit.util.DBUtil;
+import kr.or.ddit.util.DBUtil2;
+import kr.or.ddit.util.DBUtil3;
 
 import java.sql.*;
 import java.util.Scanner;
@@ -35,7 +37,9 @@ public class JdbcTest07 {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
-            conn = DBUtil.getConnection();
+//            conn = DBUtil.getConnection();
+//            conn = DBUtil2.getConnection();
+            conn = DBUtil3.getConnection();
 
             System.out.println("== 작업 선택 ==");
             System.out.println("1. 자료 추가");
